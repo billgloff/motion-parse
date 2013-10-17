@@ -1,16 +1,16 @@
 module MotionParse
   class Query
     attr_reader :owner
-    
+
     def initialize(owner)
       @owner = owner
       @pf_query = PFQuery.alloc.initWithClassName(@owner.name)
     end
-    
+
     def where(options = nil)
       options ? equal(options) : self
     end
-    
+
     def equal(options)
       options.each do |key, value|
         @pf_query.whereKey resolve_alias(key), equalTo:value
@@ -18,7 +18,7 @@ module MotionParse
       self
     end
     alias eq equal
-    
+
     def not_equal(options)
       options.each do |key, value|
         @pf_query.whereKey resolve_alias(key), notEqualTo:value
@@ -26,7 +26,7 @@ module MotionParse
       self
     end
     alias ne not_equal
-    
+
     def less_than(options)
       options.each do |key, value|
         @pf_query.whereKey resolve_alias(key), lessThan:value
@@ -34,7 +34,7 @@ module MotionParse
       self
     end
     alias lt less_than
-    
+
     def greater_than(options)
       options.each do |key, value|
         @pf_query.whereKey resolve_alias(key), greaterThan:value
@@ -42,7 +42,7 @@ module MotionParse
       self
     end
     alias gt greater_than
-    
+
     def less_than_or_equal(options)
       options.each do |key, value|
         @pf_query.whereKey resolve_alias(key), lessThanOrEqualTo:value
@@ -50,7 +50,7 @@ module MotionParse
       self
     end
     alias lte less_than_or_equal
-    
+
     def greater_than_or_equal(options)
       options.each do |key, value|
         @pf_query.whereKey resolve_alias(key), greaterThanOrEqualTo:value
@@ -58,28 +58,33 @@ module MotionParse
       self
     end
     alias gte greater_than_or_equal
-    
+
     def contained_in(options)
       options.each do |key, value|
         @pf_query.whereKey resolve_alias(key), containedIn:value
       end
       self
     end
-    
+
     def not_contained_in(options)
       options.each do |key, value|
         @pf_query.whereKey resolve_alias(key), notContainedIn:value
       end
       self
     end
-    
+
     def contains(options)
       options.each do |key, value|
         @pf_query.whereKey resolve_alias(key), containsAllObjectsInArray:value
       end
       self
     end
-    
+
+    def includeKey(value)
+      @pf_query.includeKey(value)
+      self
+    end
+
     def matches(options, modifiers = nil)
       options.each do |key, value|
         if modifiers
@@ -90,28 +95,28 @@ module MotionParse
       end
       self
     end
-    
+
     def contains_string(options)
       options.each do |key, value|
         @pf_query.whereKey resolve_alias(key), containsString:value
       end
       self
     end
-    
+
     def has_prefix(options)
       options.each do |key, value|
         @pf_query.whereKey resolve_alias(key), hasPrefix:value
       end
       self
     end
-    
+
     def has_suffix(options)
       options.each do |key, value|
         @pf_query.whereKey resolve_alias(key), hasSuffix:value
       end
       self
     end
-    
+
     def find(&block)
       if block
         query = self
@@ -123,7 +128,7 @@ module MotionParse
         @pf_query.findObjects.map { |obj| @owner.new(obj) }
       end
     end
-    
+
     def first(&block)
       if block
         query = self
@@ -135,7 +140,7 @@ module MotionParse
         object ? @owner.new(object) : nil
       end
     end
-    
+
     def count(&block)
       if block
         @pf_query.count_in_background do |result, error|
@@ -145,18 +150,18 @@ module MotionParse
         @pf_query.countObjects
       end
     end
-    
+
     def limit(num)
       @pf_query.limit = num
       self
     end
-    
+
     def offset(num)
       @pf_query.skip = num
       self
     end
     alias skip offset
-    
+
     def order(spec)
       spec.each do |field, dir|
         if @ordered
@@ -176,7 +181,7 @@ module MotionParse
       end
       self
     end
-  
+
   private
     def resolve_alias(key)
       if resolved = @owner.attribute_aliases[key]
